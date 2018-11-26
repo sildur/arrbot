@@ -1,0 +1,10 @@
+[COMMON]
+bot_token = BOTTOKEN
+
+[SONARR]
+URL = https://sonarr.awesome.tld
+TOKEN = SONARR_API_TOKEN
+basic_user = BASIC_USER
+basic_pass = BASIC_USER_PASS
+[RADARR]
+
