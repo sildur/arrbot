@@ -38,20 +38,6 @@ class sonarrApi():
         return_titles
         """
         search.replace(' ', '%20')
-        """
-        if self.sonarr_basic_user:
-            self.url = str(self.sonarr_url + "/api/series/lookup?term=" +
-                    search + "&apikey=" + self.sonarr_token)
-            self.r = requests.get(self.url, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
-        else:
-            self.r = requests.get(self.sonarr_url + "/api/" + search +
-                    "&apikey=" + self.sonarr_token)
-        try:
-            self.log.info("titles are: {}".format(self.return_titles(self.r.text)))
-            return self.return_titles(self.r.text)
-        except:
-            self.log.error("failed on return_titles")
-        """
         self.url = str(self.sonarr_url + "/api/series/lookup?term=")
         try:
             self.log.info("titles are: {}".format(self.return_titles(self.do_tv_search(self.url, search))))
@@ -141,9 +127,7 @@ class sonarrApi():
             self.jpdata = json.dumps(self.pdata)
         except:
             self.log.error("Couldn't load {} as json object".format(self.pdata))
-        self.log.info("JSON DATA IS: \n {}".format(self.jpdata))
         self.pr = requests.post(self.purl, data=self.jpdata, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
-        self.log.warn("For post request i got back: {}".format(self.pr.status_code, self.pr.text))
         if self.pr.status_code == 201:
             return True
         else:

@@ -32,6 +32,10 @@ class tgBot():
         self.dispatcher = self.updater.dispatcher
 
     def searchTV(self, bot, update, args):
+        """
+        this will search a sonarr server defined in sonarr.py
+        it returns an inline keyboard to the user with the results
+        """
         self.keyboard = []
         self.search_param = ""
         self.showlist = {}
@@ -44,19 +48,19 @@ class tgBot():
         update.message.reply_text('Found:', reply_markup=reply_markup)
 
     def button(self, bot, update):
+        """
+        this will be called once a user press's
+        an inline keyboard button, it will call 
+        in_library and add_series from sonarr.py
+        it will inform the user of the status
+        """
         query = update.callback_query
         self.tvdbId = str(query.data)
         if self.tv.in_library(self.tvdbId):
             bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id, message_id=query.message.message_id)
         else:
-            print("running add_series on {}".format(self.tvdbId))
             if self.tv.add_series(self.tvdbId):
                 bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id, message_id=query.message.message_id)
-        """
-            bot.edit_message_text(text="Selected option: {}".format(query.data),
-                                  chat_id=query.message.chat_id,
-                                  message_id=query.message.message_id)
-        """
 
     def startBot(self):
         self.updater.start_polling()
