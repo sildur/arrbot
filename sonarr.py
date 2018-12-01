@@ -78,7 +78,6 @@ class sonarrApi():
         """
         self.url = str(self.sonarr_url + "/api/series")
         jdata = self.do_tv_search(self.url)
-        self.log.info("passed arg is: ".format(tvdbId))
         for show in jdata:
             if show['tvdbId'] == int(tvdbId):
                 return True
