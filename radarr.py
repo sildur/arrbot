@@ -1,40 +1,28 @@
 #!/home/jnave/tgbot/bin/python
 import requests, json, configparser, logging, sys
 
-
-class sonarrApi():
-    gurl: str
-
+class radarrApi():
     def __init__(self):
         self.log = logging
-        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='sonarr_api.log',
-                             filemode='w',
-                             level=logging.INFO)
+        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename='radarr_api.log', filemode='w',
+                level=logging.INFO)
         self.config = configparser.ConfigParser()
-        self.sonarr_url = ""
-        self.sonarr_token = ""
-        self.used_fields = ['tvdbId', 'tvTageId', 'title', 'titleSlug', 'images', 'seasons']
-        self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
-                                                         'true',
-                                                     'ignoreEpisodesWithoutFiles':
-                                                         'false',
-                                                     'searchForMissingEpisodes':
-                                                         'true'}},
-                                     {'rootFolderPath': '/media/TV/'}]
+        self.radarr_url = ""
+        self.radarr_token = ""
 
     def load_config(self, configfile):
         """
         the config here should be in 
         windows ini format at min it
-        needs common and sonarr sections
+        needs common and radarr sections
         """
         try:
             self.config.read(configfile)
-            self.sonarr_url = self.config['SONARR']['url']
-            self.sonarr_token = self.config['SONARR']['token']
+            self.radarr_url = self.config['RADARR']['url']
+            self.radarr_token = self.config['RADARR']['token']
             try:
-                self.sonarr_basic_user = self.config['COMMON']['basic_user']
-                self.sonarr_basic_pass = self.config['COMMON']['basic_pass']
+                self.radarr_basic_user = self.config['RADARR']['basic_user']
+                self.radarr_basic_pass = self.config['RADARR']['basic_pass']
             except:
                 self.log.warn("no basic user passed")
         except:
@@ -50,7 +38,7 @@ class sonarrApi():
         return_titles
         """
         search.replace(' ', '%20')
-        self.url = str(self.sonarr_url + "/api/series/lookup?term=")
+        self.url = str(self.radarr_url + "/api/series/lookup?term=")
         try:
             self.log.info("titles are: {}".format(self.return_titles(self.do_tv_search(self.url, search))))
             return self.return_titles(self.do_tv_search(self.url, search))
@@ -70,32 +58,33 @@ class sonarrApi():
         for show in self.showlist:
             self.titles[show['title']] = show['tvdbId']
         return self.titles
-
+    
     def in_library(self, tvdbId):
         """
         returns true if the tbdbId
         is found in the library
         """
-        self.url = str(self.sonarr_url + "/api/series")
+        self.url = str(self.radarr_url + "/api/series")
         jdata = self.do_tv_search(self.url)
+        self.log.info("passed arg is: ".format(tvdbId))
         for show in jdata:
             if show['tvdbId'] == int(tvdbId):
                 return True
                 break
         return False
 
-    def do_tv_search(self, url, search_term=False):
+    def do_tv_search(self, url, search_term = False):
         """
         returns a json object of the results
         or returns false if nothing is found
         """
         if search_term:
             url += search_term
-            url += "&apikey=" + self.sonarr_token
+            url += "&apikey=" + self.radarr_token
         else:
-            url += "?apikey=" + self.sonarr_token
-        if self.sonarr_basic_user:
-            self.r = requests.get(url, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
+            url += "?apikey=" + self.radarr_token
+        if self.radarr_basic_user:
+            self.r = requests.get(url, auth=(self.radarr_basic_user, self.radarr_basic_pass))
         else:
             self.r = requests.get(url)
         if self.r.status_code == 200:
@@ -111,38 +100,40 @@ class sonarrApi():
         false otherwise
         """
         try:
-            self.gurl = str(self.sonarr_url + "/api/series/lookup" + "?term=tvdbId:")
+            self.gurl = str(self.radarr_url + "/api/series/lookup" + "?term=tvdbId:")
         except:
-            self.log.error("problem with {}".format(self.gurl))
+            self.log.error("problem with gurl")
         self.log.info("Got request for tbdbId: {}".format(tvdbId))
         raw_data = self.do_tv_search(self.gurl, str(tvdbId))
-        self.purl = str(self.sonarr_url + "/api/series/" + "?apikey=" + self.sonarr_token)
+        self.used_fields = ['tvdbId', 'tvTageId', 'title', 'titleSlug', 'images', 'seasons']
+        self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
+                                                     'true',
+                                                     'ignoreEpisodesWithoutFiles':
+                                                     'false',
+                                                     'searchForMissingEpisodes':
+                                                     'true'}},
+                                     {'rootFolderPath': '/media/TV/'}]
+        self.purl = str(self.radarr_url + "/api/series/" + "?apikey=" + self.radarr_token)
+        self.pdata = {}
+        for show in raw_data:
+            for key, value in show.items():
+                if key in self.used_fields:
+                    self.pdata[key] = value
+        self.pdata['qualityProfileId'] = 1
+        for x in self.used_fields_optional:
+            for k, v in x.items():
+                self.pdata[k] = v
         try:
-            self.jpdata = json.dumps(self.build_data(raw_data))
+            self.jpdata = json.dumps(self.pdata)
         except:
             self.log.error("Couldn't load {} as json object".format(self.pdata))
-        self.pr = requests.post(self.purl, data=self.jpdata, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
+        self.pr = requests.post(self.purl, data=self.jpdata, auth=(self.radarr_basic_user, self.radarr_basic_pass))
         if self.pr.status_code == 201:
             return True
         else:
             return False
 
-    def build_data(self, data):
-        """
-        builds json data from raw response
-        asdf
-        """
-        built_data = {'qualityProfileId': 1}
-        for show in data:
-            for key, value in show.items():
-                if key in self.used_fields:
-                    built_data[key] = value
-        for x in self.used_fields_optional:
-            for k, v in x.items():
-                built_data[k] = v
-        return built_data
-
 if __name__ == "__main__":
-    api = sonarrApi()
+    api = radarrApi()
     api.load_config('dlconfig.cfg')
     api.search_series("Rick and")
