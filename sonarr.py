@@ -131,6 +131,7 @@ class sonarrApi():
     def build_data(self, data):
         """
         builds json data from raw response
+        asdf
         """
         built_data = {'qualityProfileId': 1}
         for show in data:
