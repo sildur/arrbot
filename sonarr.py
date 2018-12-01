@@ -1,14 +1,26 @@
 #!/home/jnave/tgbot/bin/python
 import requests, json, configparser, logging, sys
 
+
 class sonarrApi():
+    gurl: str
+
     def __init__(self):
         self.log = logging
-        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename='sonarr_api.log', filemode='w',
-                level=logging.INFO)
+        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='sonarr_api.log',
+                             filemode='w',
+                             level=logging.INFO)
         self.config = configparser.ConfigParser()
         self.sonarr_url = ""
         self.sonarr_token = ""
+        self.used_fields = ['tvdbId', 'tvTageId', 'title', 'titleSlug', 'images', 'seasons']
+        self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
+                                                         'true',
+                                                     'ignoreEpisodesWithoutFiles':
+                                                         'false',
+                                                     'searchForMissingEpisodes':
+                                                         'true'}},
+                                     {'rootFolderPath': '/media/TV/'}]
 
     def load_config(self, configfile):
         """
@@ -58,7 +70,7 @@ class sonarrApi():
         for show in self.showlist:
             self.titles[show['title']] = show['tvdbId']
         return self.titles
-    
+
     def in_library(self, tvdbId):
         """
         returns true if the tbdbId
@@ -73,7 +85,7 @@ class sonarrApi():
                 break
         return False
 
-    def do_tv_search(self, url, search_term = False):
+    def do_tv_search(self, url, search_term=False):
         """
         returns a json object of the results
         or returns false if nothing is found
@@ -102,29 +114,12 @@ class sonarrApi():
         try:
             self.gurl = str(self.sonarr_url + "/api/series/lookup" + "?term=tvdbId:")
         except:
-            self.log.error("problem with gurl")
+            self.log.error("problem with {}".format(self.gurl))
         self.log.info("Got request for tbdbId: {}".format(tvdbId))
         raw_data = self.do_tv_search(self.gurl, str(tvdbId))
-        self.used_fields = ['tvdbId', 'tvTageId', 'title', 'titleSlug', 'images', 'seasons']
-        self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
-                                                     'true',
-                                                     'ignoreEpisodesWithoutFiles':
-                                                     'false',
-                                                     'searchForMissingEpisodes':
-                                                     'true'}},
-                                     {'rootFolderPath': '/media/TV/'}]
         self.purl = str(self.sonarr_url + "/api/series/" + "?apikey=" + self.sonarr_token)
-        self.pdata = {}
-        for show in raw_data:
-            for key, value in show.items():
-                if key in self.used_fields:
-                    self.pdata[key] = value
-        self.pdata['qualityProfileId'] = 1
-        for x in self.used_fields_optional:
-            for k, v in x.items():
-                self.pdata[k] = v
         try:
-            self.jpdata = json.dumps(self.pdata)
+            self.jpdata = json.dumps(self.pdata(raw_data))
         except:
             self.log.error("Couldn't load {} as json object".format(self.pdata))
         self.pr = requests.post(self.purl, data=self.jpdata, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
@@ -132,6 +127,20 @@ class sonarrApi():
             return True
         else:
             return False
+
+    def build_data(self, data):
+        """
+        builds json data from raw response
+        """
+        built_data = {'qualityProfileId': 1}
+        for show in data:
+            for key, value in show.items():
+                if key in self.used_fields:
+                    built_data[key] = value
+        for x in self.used_fields_optional:
+            for k, v in x.items():
+                built_data[k] = v
+        return built_data
 
 if __name__ == "__main__":
     api = sonarrApi()

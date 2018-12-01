@@ -4,11 +4,13 @@ from telegram import *
 from sonarr import *
 from telegram.ext import *
 
+
 class tgBot():
     def __init__(self):
         self.log = logging
-        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',filename='tgbot_api.log', filemode='w',
-                level=logging.INFO)
+        self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='tgbot_api.log',
+                             filemode='w',
+                             level=logging.INFO)
         self.config = configparser.ConfigParser()
         self.tgbot_token = ""
         self.tv = sonarrApi()
@@ -57,18 +59,21 @@ class tgBot():
         query = update.callback_query
         self.tvdbId = str(query.data)
         if self.tv.in_library(self.tvdbId):
-            bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id, message_id=query.message.message_id)
+            bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id)
         else:
             if self.tv.add_series(self.tvdbId):
-                bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id, message_id=query.message.message_id)
+                bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id)
 
     def startBot(self):
         self.updater.start_polling()
 
     def addHandlers(self):
-        self.searchTV_handler = CommandHandler('searchTV', self.searchTV, pass_args = True)
+        self.searchTV_handler = CommandHandler('searchTV', self.searchTV, pass_args=True)
         self.dispatcher.add_handler(self.searchTV_handler)
         self.updater.dispatcher.add_handler(CallbackQueryHandler(self.button))
+
 
 if __name__ == "__main__":
     bot = tgBot()
