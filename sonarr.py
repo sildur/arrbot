@@ -33,8 +33,8 @@ class sonarrApi():
             self.sonarr_url = self.config['SONARR']['url']
             self.sonarr_token = self.config['SONARR']['token']
             try:
-                self.sonarr_basic_user = self.config['SONARR']['basic_user']
-                self.sonarr_basic_pass = self.config['SONARR']['basic_pass']
+                self.sonarr_basic_user = self.config['COMMON']['basic_user']
+                self.sonarr_basic_pass = self.config['COMMON']['basic_pass']
             except:
                 self.log.warn("no basic user passed")
         except:
