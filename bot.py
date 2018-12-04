@@ -19,6 +19,7 @@ class tgBot():
         self.movie.load_config('dlconfig.cfg')
         self.tv.load_config('dlconfig.cfg')
         self.allowed_users = [ 309157084 ]
+        self.type_search = 'movie'
 
     def load_config(self, configfile):
         """
@@ -47,63 +48,80 @@ class tgBot():
         self.updater = Updater(token=self.tgbot_token)
         self.dispatcher = self.updater.dispatcher
 
+    def searcher(self, terms):
+        """
+        blanket searcher takes self.type_search
+        and searches either radarr or sonarr
+        """
+        self.search_param = ""
+        self.resultlist = {}
+        for x in terms:
+            self.search_param += x + " "
+        if self.type_search == 'movie':
+            self.resultlist = self.movie.search_movie(self.search_param)
+        else:
+            self.resultlist = self.tv.search_series(self.search_param)
+        return self.build_keyboard(self.resultlist)
+
+    def build_keyboard(self, rlist):
+        """
+        this builds a keyboard telegram object
+        from a list passed to args
+        """
+        self.keyboard = []
+        for r in rlist:
+            self.keyboard.append([InlineKeyboardButton(r, callback_data=rlist[r])])
+        reply_markup = InlineKeyboardMarkup(self.keyboard)
+        return reply_markup
+
     @restricted 
     def searchTV(self, bot, update, args):
         """
         this will search a sonarr server defined in sonarr.py
         it returns an inline keyboard to the user with the results
         """
-        self.keyboard = []
-        self.search_param = ""
-        self.showlist = {}
-        for x in args:
-            self.search_param += x + " "
-        self.showlist = self.tv.search_series(self.search_param)
-        for show in self.showlist:
-            self.keyboard.append([InlineKeyboardButton(show, callback_data=self.showlist[show])])
-        reply_markup = InlineKeyboardMarkup(self.keyboard)
+        self.type_search = 'TV'
+        reply_markup = self.searcher(args)
         update.message.reply_text('Found:', reply_markup=reply_markup)
 
     @restricted
-    def tv_button(self, bot, update):
+    def download_button(self, bot, update):
         """
         this will be called once a user press's
         an inline keyboard button, it will call 
         in_library and add_series from sonarr.py
-        it will inform the user of the status
+        or radarr.py and then it will inform the
+        user of the status
         """
         query = update.callback_query
-        self.tvdbId = str(query.data)
-        if self.tv.in_library(self.tvdbId):
-            bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id,
-                                  message_id=query.message.message_id)
-        else:
-            if self.tv.add_series(self.tvdbId):
-                bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id,
+        self.Id = str(query.data)
+        if self.type_search == 'movie':
+            if self.movie.in_library(self.Id):
+                bot.edit_message_text(text="sorry in library already",
+                                      chat_id=query.message.chat_id,
                                       message_id=query.message.message_id)
+            else:
+                if self.movie.add_movie(self.Id):
+                    bot.edit_message_text(text="Added, will be a few hours",
+                                          chat_id=query.message.chat_id,
+                                          message_id=query.message.message_id)
+        else:
+            if self.tv.in_library(self.Id):
+                bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id)
+            else:
+                if self.tv.add_series(self.Id):
+                    bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id,
+                                          message_id=query.message.message_id)
 
-    def movie_button(self, bot, update):
-        """
-        this needs to be added yet
-        """
-        pass
+    @restricted
     def searchMovies(self, bot, update, args):
         """
         this will search a radarr server defined in radarr.py
         it returns an inline keyboard to the user with the results
         """
-        print(args)
-        self.keyboard = []
-        self.search_param = ""
-        self.movielist = {}
-        for x in args:
-            self.search_param += x + " "
-        self.movielist = self.movie.search_movie(self.search_param)
-        print(self.movielist.items())
-        for movie in self.movielist:
-            print(movie, self.movielist[movie])
-            self.keyboard.append([InlineKeyboardButton(movie, callback_data=self.movielist[movie])])
-            reply_markup = InlineKeyboardMarkup(self.keyboard)
+        self.type_search = 'movie'
+        reply_markup = self.searcher(args)
         update.message.reply_text('Found:', reply_markup=reply_markup)
 
     def startBot(self):
@@ -114,8 +132,7 @@ class tgBot():
         self.searchmovie_handler = CommandHandler('movie', self.searchMovies, pass_args=True)
         self.dispatcher.add_handler(self.searchTV_handler)
         self.dispatcher.add_handler(self.searchmovie_handler)
-        self.updater.dispatcher.add_handler(CallbackQueryHandler(self.tv_button))
-        self.updater.dispatcher.add_handler(CallbackQueryHandler(self.movie_button))
+        self.updater.dispatcher.add_handler(CallbackQueryHandler(self.download_button))
 
 
 if __name__ == "__main__":
