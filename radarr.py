@@ -47,17 +47,21 @@ class radarrApi():
         """
         search.replace(' ', '%20')
         self.url = str(self.radarr_url + "/api/movie/lookup?term=")
+        self.log.info("Searching for: {}".format(search))
+        self.log.info(self.return_titles(self.do_movie_search(self.url, search)))
         try:
             self.log.info("titles are: {}".format(self.return_titles(self.do_movie_search(self.url, search))))
-            return self.return_titles(self.do_movie_search(self.url, search))
+            rvalu = self.return_titles(self.do_movie_search(self.url, search))
+            return rvalu
         except:
-            self.log.error("failed on do_movie_search or return_titles")
+            self.log.error("failed on do_movie_search or return_titles for {}".format(search))
 
     def return_titles(self, rawjson):
         """
         this just populates the fields we want into a dict
         """
         self.titles = {}
+        self.log.info("Fromreturntitles: {}".format(rawjson))
         for movie in rawjson:
             for k, v in movie.items():
                 if k == "tmdbId":
