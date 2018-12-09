@@ -1,4 +1,4 @@
-#!/home/jnave/tgbot/bin/python
+#!/usr/bin/env python
 import requests, json, configparser, logging, sys
 
 
@@ -16,7 +16,9 @@ class radarrApi():
         self.used_fields = ['tmdbId', 'title', 'titleSlug',
                             'images', 'year']
         self.used_fields_optional = [{'monitored': 'True'},
-                                     {'rootFolderPath': '/media/movies/'}]
+                                     {'rootFolderPath': '/media/movies/'},
+                                     {'addOptions': {'searchForMovie' :
+                                                     'True'}}]
 
     def load_config(self, configfile):
         """
@@ -123,6 +125,7 @@ class radarrApi():
         except:
             self.log.error("Couldn't load {} as json object".format(jpdata))
         try:
+            self.log.info(jpdata)
             self.pr = requests.post(self.purl, data=jpdata, auth=(self.radarr_basic_user, self.radarr_basic_pass))
         except:
             self.log.error("Got {} from api".format(self.pr.status_code))

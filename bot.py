@@ -1,4 +1,4 @@
-#!/home/jnave/tgbot/bin/python
+#!/usr/bin/env python
 import os, configparser, logging
 from telegram import *
 from sonarr import *

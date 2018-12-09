@@ -1,4 +1,4 @@
-#!/home/jnave/tgbot/bin/python
+#!/usr/bin/env python
 import requests, json, configparser, logging, sys
 
 
