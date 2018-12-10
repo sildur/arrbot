@@ -97,22 +97,26 @@ class tgBot():
         self.Id = str(query.data)
         if self.type_search == 'movie':
             if self.movie.in_library(self.Id):
-                bot.edit_message_text(text="sorry in library already",
-                                      chat_id=query.message.chat_id,
-                                      message_id=query.message.message_id)
+                self.bot_respond(bot, "sorry in library already", query)
             else:
                 if self.movie.add_movie(self.Id):
-                    bot.edit_message_text(text="Added, will be a few hours",
-                                          chat_id=query.message.chat_id,
-                                          message_id=query.message.message_id)
+                    self.bot_respond(bot, "added, please wait a few hours",
+                                     query)
         else:
             if self.tv.in_library(self.Id):
-                bot.edit_message_text(text="Sorry in library already", chat_id=query.message.chat_id,
-                                      message_id=query.message.message_id)
+                self.bot_respond(bot, "sorry in library already", query)
             else:
                 if self.tv.add_series(self.Id):
-                    bot.edit_message_text(text="Added, should be available in about an hour", chat_id=query.message.chat_id,
-                                          message_id=query.message.message_id)
+                    self.bot_respond(bot, "downloading, please wait an hour",
+                                     query)
+
+    def bot_respond(self, bot, txt, query):
+        """
+        responds to a download query
+        split for readabliitytytyty
+        """
+        bot.edit_message_text(text=txt, chat_id=query.message.chat_id,
+                              message_id=query.message.message_id)
 
     @restricted
     def searchMovies(self, bot, update, args):
