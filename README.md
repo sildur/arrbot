@@ -18,7 +18,7 @@ Requirements:
 
 Installation:
 -------------
-    git clone ssh://git@git.nave.ws:7999/tel/full_bot.git
+    git clone ssh://git@gitlab.com:herpaderk/tgrsbot.git
 
 Usage:
 -----
