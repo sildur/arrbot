@@ -26,9 +26,9 @@ First you will need to change the dlconfig.example to hold your configuration. B
 sonarr/radarr keys/url etc. Once that is done you need to populate allowed_chat. This will be the 
 group_id that you had the bot join, you can get this by sending a message to the group chat the bot 
 is in, then going to the following url https://api.telegram.org/botAPITOKENHERE/getUpdates
-You will get some json that has the chat_id in it. Put this into bot.py (at some point ill move this to 
-the dlconfig). Then rename dlconfig.example to dlconfig.cfg. Then you can start using the bot. Just run
-the program with python3 bot.py. It will then log to tgbot\_api.log 
+You will get some json that has the chat_id in it. Put this into the dlconfig as well. Then rename 
+dlconfig.example to dlconfig.cfg. Then you can start using the bot. Just run
+the program with nohup python3 bot.py. It will then log to tgbot\_api.log 
 
   
 The two commands available are /tv and /movie inside of telegram. This will log to tgbot\*log. 

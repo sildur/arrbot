@@ -18,8 +18,8 @@ class tgBot():
         self.movie = radarrApi()
         self.movie.load_config('dlconfig.cfg')
         self.tv.load_config('dlconfig.cfg')
-        self.allowed_chat = [-199179634]
         self.type_search = 'movie'
+        self.allowed_chat = []
 
     def load_config(self, configfile):
         """
@@ -30,6 +30,8 @@ class tgBot():
         try:
             self.config.read(configfile)
             self.tgbot_token = self.config['COMMON']['bot_token']
+            group = int(self.config['COMMON']['allowed_chat'])
+            self.allowed_chat.append(group)
         except:
             self.log.error("Error reading config file {}".format(configfile))
             sys.exit(1)
