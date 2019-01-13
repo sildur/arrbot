@@ -2,7 +2,7 @@
 bot_token = BOTTOKEN
 basic_user = BASIC_USER
 basic_pass = BASIC_USER_PASS
-
+allowed_chat = GROUP_ID_NUMBER
 [SONARR]
 URL = https://sonarr.awesome.tld
 TOKEN = SONARR_API_TOKEN
