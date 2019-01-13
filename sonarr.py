@@ -3,6 +3,12 @@ import requests, json, configparser, logging, sys
 
 
 class sonarrApi():
+    """
+    module to interact with a sonarr 
+    instance. It has a few methods exposed
+    some are internal only, so keep that in mind
+    when in doubt, read the code
+    """
     gurl: str
 
     def __init__(self):

@@ -18,7 +18,7 @@ class tgBot():
         self.movie = radarrApi()
         self.movie.load_config('dlconfig.cfg')
         self.tv.load_config('dlconfig.cfg')
-        self.allowed_users = [ 309157084 ]
+        self.allowed_chat = [-199179634]
         self.type_search = 'movie'
 
     def load_config(self, configfile):
@@ -38,8 +38,9 @@ class tgBot():
         @wraps(func)
         def wrapped(self, bot, update, *args, **kwargs):
             user_id = update.effective_user.id
-            if user_id not in self.allowed_users:
-                print("Unauthorized access denied for {}.".format(user_id))
+            chat_id = update.effective_chat.id
+            if chat_id not in self.allowed_chat:
+                self.log.info("Unauthorized access denied for {}. Chat_id is {}".format(user_id, chat_id))
                 return
             return func(self, bot, update, *args, **kwargs)
         return wrapped

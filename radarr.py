@@ -3,6 +3,12 @@ import requests, json, configparser, logging, sys
 
 
 class radarrApi():
+    """
+    module to interact with a radarr
+    instance. It has a few methods exposed
+    some are internal only, so keep that in mind
+    when in doubt, read the code
+    """
     gurl: str
 
     def __init__(self):
@@ -50,9 +56,7 @@ class radarrApi():
         search.replace(' ', '%20')
         self.url = str(self.radarr_url + "/api/movie/lookup?term=")
         self.log.info("Searching for: {}".format(search))
-        self.log.info(self.return_titles(self.do_movie_search(self.url, search)))
         try:
-            self.log.info("titles are: {}".format(self.return_titles(self.do_movie_search(self.url, search))))
             rvalu = self.return_titles(self.do_movie_search(self.url, search))
             return rvalu
         except:
@@ -63,7 +67,6 @@ class radarrApi():
         this just populates the fields we want into a dict
         """
         self.titles = {}
-        self.log.info("Fromreturntitles: {}".format(rawjson))
         for movie in rawjson:
             for k, v in movie.items():
                 if k == "tmdbId":
@@ -125,7 +128,6 @@ class radarrApi():
         except:
             self.log.error("Couldn't load {} as json object".format(jpdata))
         try:
-            self.log.info(jpdata)
             self.pr = requests.post(self.purl, data=jpdata, auth=(self.radarr_basic_user, self.radarr_basic_pass))
         except:
             self.log.error("Got {} from api".format(self.pr.status_code))
