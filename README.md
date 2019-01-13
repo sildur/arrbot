@@ -9,10 +9,12 @@ or you just don't have time to go and get something for every little request a u
 
 Requirements:
 ------------
-* Bot from the botfather
+* Telegram bot already in a group chat
 * Radarr Install
 * Sonarr Install
+* Python3 modules: telegram, reqeusts, json, functools, configparser, logging
 
+**tested on linux only. It should work on ALL OS's**
 
 Installation:
 -------------
