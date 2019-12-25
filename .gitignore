@@ -1,2 +1,4 @@
 dlconfig.cfg
 /__pycache*
+/nohup.out
+/tgbot_api.log
