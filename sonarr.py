@@ -20,13 +20,6 @@ class sonarrApi():
         self.sonarr_url = ""
         self.sonarr_token = ""
         self.used_fields = ['tvdbId', 'tvTageId', 'title', 'titleSlug', 'images', 'seasons']
-        self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
-                                                         'true',
-                                                     'ignoreEpisodesWithoutFiles':
-                                                         'false',
-                                                     'searchForMissingEpisodes':
-                                                         'true'}},
-                                     {'rootFolderPath': '/media/TV/'}]
 
     def load_config(self, configfile):
         """
@@ -38,10 +31,20 @@ class sonarrApi():
             self.config.read(configfile)
             self.sonarr_url = self.config['SONARR']['url']
             self.sonarr_token = self.config['SONARR']['token']
+            self.sonarr_root_folder_path = self.config['SONARR']['root_folder_path']
+            self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
+                                                             'true',
+                                                         'ignoreEpisodesWithoutFiles':
+                                                             'false',
+                                                         'searchForMissingEpisodes':
+                                                             'true'}},
+                                         {'rootFolderPath': self.sonarr_root_folder_path}]
             try:
                 self.sonarr_basic_user = self.config['COMMON']['basic_user']
                 self.sonarr_basic_pass = self.config['COMMON']['basic_pass']
             except:
+                self.sonarr_basic_user = False
+                self.sonarr_basic_pass = False
                 self.log.warn("no basic user passed")
         except:
             self.log.error("Error reading config file {}".format(configfile))

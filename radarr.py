@@ -21,10 +21,6 @@ class radarrApi():
         self.radarr_token = ""
         self.used_fields = ['tmdbId', 'title', 'titleSlug',
                             'images', 'year']
-        self.used_fields_optional = [{'monitored': 'True'},
-                                     {'rootFolderPath': '/media/movies/'},
-                                     {'addOptions': {'searchForMovie' :
-                                                     'True'}}]
 
     def load_config(self, configfile):
         """
@@ -36,10 +32,17 @@ class radarrApi():
             self.config.read(configfile)
             self.radarr_url = self.config['RADARR']['url']
             self.radarr_token = self.config['RADARR']['token']
+            self.root_folder_path = self.config['RADARR']['root_folder_path']
+            self.used_fields_optional = [{'monitored': 'True'},
+                                         {'rootFolderPath': self.root_folder_path},
+                                         {'addOptions': {'searchForMovie' :
+                                                         'True'}}]
             try:
                 self.radarr_basic_user = self.config['COMMON']['basic_user']
                 self.radarr_basic_pass = self.config['COMMON']['basic_pass']
             except:
+                self.radarr_basic_user = False
+                self.radarr_basic_pass = False
                 self.log.warn("no basic user passed")
         except:
             self.log.error("Error reading config file {}".format(configfile))
