@@ -28,10 +28,10 @@ class tgBot():
         needs common and tgbot sections
         """
         try:
-            self.config.read(configfile)
-            self.tgbot_token = self.config['COMMON']['bot_token']
-            group = int(self.config['COMMON']['allowed_chat'])
-            self.allowed_chat.append(group)
+          self.config.read(configfile)
+          self.tgbot_token = self.config['COMMON']['bot_token']
+          group = int(self.config['COMMON']['allowed_chat'])
+          self.allowed_chat.append(group)
         except:
             self.log.error("Error reading config file {}".format(configfile))
             sys.exit(1)
@@ -85,6 +85,7 @@ class tgBot():
         """
         self.type_search = 'TV'
         reply_markup = self.searcher(args)
+
         update.message.reply_text('Found:', reply_markup=reply_markup)
 
     @restricted
