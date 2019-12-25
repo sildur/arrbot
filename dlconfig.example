@@ -6,7 +6,9 @@ allowed_chat = GROUP_ID_NUMBER
 [SONARR]
 URL = https://sonarr.awesome.tld
 TOKEN = SONARR_API_TOKEN
+root_folder_path = /path/to/movies/
 
 [RADARR]
 [URL] = https://sonarr.awesome.tld
 TOKEN = RADARR_API_TOKEN
+root_folder_path = /path/to/tv_shows/
