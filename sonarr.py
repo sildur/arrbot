@@ -29,9 +29,9 @@ class sonarrApi():
         """
         try:
             self.config.read(configfile)
-            self.sonarr_url = self.config['SONARR']['url']
-            self.sonarr_token = self.config['SONARR']['token']
-            self.sonarr_root_folder_path = self.config['SONARR']['root_folder_path']
+            self.sonarr_url = self.config['sonarr']['url']
+            self.sonarr_token = self.config['sonarr']['token']
+            self.sonarr_root_folder_path = self.config['sonarr']['root_folder_path']
             self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
                                                              'true',
                                                          'ignoreEpisodesWithoutFiles':
@@ -40,8 +40,8 @@ class sonarrApi():
                                                              'true'}},
                                          {'rootFolderPath': self.sonarr_root_folder_path}]
             try:
-                self.sonarr_basic_user = self.config['COMMON']['basic_user']
-                self.sonarr_basic_pass = self.config['COMMON']['basic_pass']
+                self.sonarr_basic_user = self.config['common']['basic_user']
+                self.sonarr_basic_pass = self.config['common']['basic_pass']
             except:
                 self.sonarr_basic_user = False
                 self.sonarr_basic_pass = False

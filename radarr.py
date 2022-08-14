@@ -30,16 +30,16 @@ class radarrApi():
         """
         try:
             self.config.read(configfile)
-            self.radarr_url = self.config['RADARR']['url']
-            self.radarr_token = self.config['RADARR']['token']
-            self.root_folder_path = self.config['RADARR']['root_folder_path']
-            self.used_fields_optional = [{'monitored': 'True'},
+            self.radarr_url = self.config['radarr']['url']
+            self.radarr_token = self.config['radarr']['token']
+            self.root_folder_path = self.config['radarr']['root_folder_path']
+            self.used_fields_optional = [{'monitored': True},
                                          {'rootFolderPath': self.root_folder_path},
-                                         {'addOptions': {'searchForMovie' :
-                                                         'True'}}]
+                                         {'addOptions': {'searchForMovie':
+                                                             True}}]
             try:
-                self.radarr_basic_user = self.config['COMMON']['basic_user']
-                self.radarr_basic_pass = self.config['COMMON']['basic_pass']
+                self.radarr_basic_user = self.config['common']['basic_user']
+                self.radarr_basic_pass = self.config['common']['basic_pass']
             except:
                 self.radarr_basic_user = False
                 self.radarr_basic_pass = False
@@ -57,7 +57,7 @@ class radarrApi():
         return_titles
         """
         search.replace(' ', '%20')
-        self.url = str(self.radarr_url + "/api/movie/lookup?term=")
+        self.url = str(self.radarr_url + "/api/v3/movie/lookup?term=")
         self.log.info("Searching for: {}".format(search))
         try:
             rvalu = self.return_titles(self.do_movie_search(self.url, search))
@@ -82,7 +82,7 @@ class radarrApi():
         returns true if the tbdbId
         is found in the library
         """
-        self.url = str(self.radarr_url + "/api/movie")
+        self.url = str(self.radarr_url + "/api/v3/movie")
         jdata = self.do_movie_search(self.url)
         for show in jdata:
             if show['tmdbId'] == int(tmdbId):
@@ -120,18 +120,20 @@ class radarrApi():
         """
         jpdata = {}
         try:
-            self.gurl = str(self.radarr_url + "/api/movie/lookup/tmdb" + "?tmdbId=")
+            self.gurl = str(self.radarr_url + "/api/v3/movie/lookup/tmdb" + "?tmdbId=")
         except:
             self.log.error("problem with {}".format(self.gurl))
         self.log.info("Got request for tbdbId: {}".format(tmdbId))
         raw_data = self.do_movie_search(self.gurl, str(tmdbId))
-        self.purl = str(self.radarr_url + "/api/movie/" + "?apikey=" + self.radarr_token)
+        self.purl = str(self.radarr_url + "/api/v3/movie/" + "?apikey=" + self.radarr_token)
         try:
             jpdata = json.dumps(self.build_data(raw_data))
         except:
             self.log.error("Couldn't load {} as json object".format(jpdata))
         try:
-            self.pr = requests.post(self.purl, data=jpdata, auth=(self.radarr_basic_user, self.radarr_basic_pass))
+            headers = {'Content-type': 'application/json'}
+            self.pr = requests.post(self.purl, data=jpdata, headers=headers,
+                                    auth=(self.radarr_basic_user, self.radarr_basic_pass))
         except:
             self.log.error("Got {} from api".format(self.pr.status_code))
         if self.pr.status_code == 201:
@@ -152,6 +154,7 @@ class radarrApi():
             for k, v in x.items():
                 built_data[k] = v
         return built_data
+
 
 if __name__ == "__main__":
     api = radarrApi()
