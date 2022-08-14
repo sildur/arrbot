@@ -1,0 +1,17 @@
+[common]
+bot_token = BOTTOKEN
+allowed_chats = GROUP_ID_NUMBER
+
+[sonarr]
+basic_username = BASIC_USER
+basic_password = BASIC_USER_PASS
+url = https://sonarr.example.com
+api_key = SONARR_API_TOKEN
+root_dir = /path/to/movies/
+
+[radarr]
+basic_username = BASIC_USER
+basic_password = BASIC_USER_PASS
+url = https://radarr.example.com
+api_key = RADARR_API_TOKEN
+root_dir = /path/to/tv_shows/

@@ -1,4 +1,4 @@
-dlconfig.cfg
+arrbot.ini
 /__pycache*
 /nohup.out
 /tgbot_api.log
