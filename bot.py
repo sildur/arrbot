@@ -102,7 +102,7 @@ class tgBot():
                 self.bot_respond(context.bot, "sorry in library already", query)
             else:
                 if self.tv.add_series(self.Id):
-                    self.bot_respond(context.bot, "downloading, please wait an hour",
+                    self.bot_respond(context.bot, "added, please wait a few hours",
                                      query)
 
     def bot_respond(self, bot, txt, query):
