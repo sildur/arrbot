@@ -1,29 +1,57 @@
 #!/usr/bin/env python
-import os, configparser, logging
-from telegram import *
-from sonarr import *
-from radarr import *
-from telegram.ext import *
-from functools import wraps
+import configparser
+import logging
+import sys
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Updater, CallbackContext, CommandHandler, CallbackQueryHandler
+
+from radarr import RadarrApi
+from sonarr import SonarrApi
 
 
-class tgBot():
-    def __init__(self):
+def bot_respond(telegram_bot, txt, query):
+    """
+    responds to a download query
+    split for readability
+    """
+    telegram_bot.edit_message_text(
+        text=txt, chat_id=query.message.chat_id, message_id=query.message.message_id
+    )
+
+
+def build_keyboard(rlist):
+    """
+    this builds a keyboard telegram object
+    from a list passed to args
+    """
+    keyboard = []
+    for r in rlist:
+        keyboard.append([InlineKeyboardButton(r, callback_data=rlist[r])])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    return reply_markup
+
+
+class TgBot:
+    def __init__(self, config_file):
         self.log = logging
-        # self.log.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='tgbot_api.log',
-        #                      filemode='w',
-        #                      level=logging.INFO)
         self.log.basicConfig(
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename='tgbot_api.log',
+            filemode='w',
+            level=logging.INFO
         )
         self.config = configparser.ConfigParser()
         self.tgbot_token = ""
-        self.tv = sonarrApi()
-        self.movie = radarrApi()
-        self.movie.load_config('dlconfig.cfg')
-        self.tv.load_config('dlconfig.cfg')
+        self.tv = SonarrApi()
+        self.movie = RadarrApi()
+        self.movie.load_config(config_file)
+        self.tv.load_config(config_file)
         self.type_search = 'movie'
         self.allowed_chat = []
+        self.load_config(config_file)
+        self.updater = Updater(token=self.tgbot_token)
+        self.dispatcher = self.updater.dispatcher
+        self.add_handlers()
 
     def load_config(self, configfile):
         """
@@ -36,41 +64,25 @@ class tgBot():
             self.tgbot_token = self.config['common']['bot_token']
             group = int(self.config['common']['allowed_chat'])
             self.allowed_chat.append(group)
-        except:
+        except KeyError:
             self.log.error("Error reading config file {}".format(configfile))
             sys.exit(1)
-
-    def initBot(self):
-        self.updater = Updater(token=self.tgbot_token)
-        self.dispatcher = self.updater.dispatcher
 
     def searcher(self, terms):
         """
         blanket searcher takes self.type_search
         and searches either radarr or sonarr
         """
-        self.search_param = ""
-        self.resultlist = {}
+        search_param = ""
         for x in terms:
-            self.search_param += x + " "
+            search_param += x + " "
         if self.type_search == 'movie':
-            self.resultlist = self.movie.search_movie(self.search_param)
+            result_list = self.movie.search_movie(search_param)
         else:
-            self.resultlist = self.tv.search_series(self.search_param)
-        return self.build_keyboard(self.resultlist)
+            result_list = self.tv.search_series(search_param)
+        return build_keyboard(result_list)
 
-    def build_keyboard(self, rlist):
-        """
-        this builds a keyboard telegram object
-        from a list passed to args
-        """
-        self.keyboard = []
-        for r in rlist:
-            self.keyboard.append([InlineKeyboardButton(r, callback_data=rlist[r])])
-        reply_markup = InlineKeyboardMarkup(self.keyboard)
-        return reply_markup
-
-    def searchTV(self, update: Update, context: CallbackContext):
+    def search_tv(self, update: Update, context: CallbackContext):
         """
         this will search a sonarr server defined in sonarr.py
         it returns an inline keyboard to the user with the results
@@ -85,35 +97,25 @@ class tgBot():
         this will be called once a user press's
         an inline keyboard button, it will call 
         in_library and add_series from sonarr.py
-        or radarr.py and then it will inform the
+        or radarr.py, and then it will inform the
         user of the status
         """
         query = update.callback_query
-        self.Id = str(query.data)
+        item_id = str(query.data)
         if self.type_search == 'movie':
-            if self.movie.in_library(self.Id):
-                self.bot_respond(context.bot, "sorry in library already", query)
+            if self.movie.in_library(item_id):
+                bot_respond(context.bot, "sorry in library already", query)
             else:
-                if self.movie.add_movie(self.Id):
-                    self.bot_respond(context.bot, "added, please wait a few hours",
-                                     query)
+                if self.movie.add_movie(item_id):
+                    bot_respond(context.bot, "added, please wait a few hours", query)
         else:
-            if self.tv.in_library(self.Id):
-                self.bot_respond(context.bot, "sorry in library already", query)
+            if self.tv.in_library(item_id):
+                bot_respond(context.bot, "sorry in library already", query)
             else:
-                if self.tv.add_series(self.Id):
-                    self.bot_respond(context.bot, "added, please wait a few hours",
-                                     query)
+                if self.tv.add_series(item_id):
+                    bot_respond(context.bot, "added, please wait a few hours", query)
 
-    def bot_respond(self, bot, txt, query):
-        """
-        responds to a download query
-        split for readabliitytytyty
-        """
-        bot.edit_message_text(text=txt, chat_id=query.message.chat_id,
-                              message_id=query.message.message_id)
-
-    def searchMovies(self, update: Update, context: CallbackContext):
+    def search_movies(self, update: Update, context: CallbackContext):
         """
         this will search a radarr server defined in radarr.py
         it returns an inline keyboard to the user with the results
@@ -122,20 +124,17 @@ class tgBot():
         reply_markup = self.searcher(context.args)
         update.message.reply_text('Found:', reply_markup=reply_markup)
 
-    def startBot(self):
+    def start_bot(self):
         self.updater.start_polling()
 
-    def addHandlers(self):
-        self.searchTV_handler = CommandHandler('TV', self.searchTV, pass_args=True)
-        self.searchmovie_handler = CommandHandler('movie', self.searchMovies, pass_args=True)
-        self.dispatcher.add_handler(self.searchTV_handler)
-        self.dispatcher.add_handler(self.searchmovie_handler)
+    def add_handlers(self):
+        search_tv_handler = CommandHandler('tv', self.search_tv, pass_args=True)
+        search_movie_handler = CommandHandler('movie', self.search_movies, pass_args=True)
+        self.dispatcher.add_handler(search_tv_handler)
+        self.dispatcher.add_handler(search_movie_handler)
         self.dispatcher.add_handler(CallbackQueryHandler(self.download_button))
 
 
 if __name__ == "__main__":
-    bot = tgBot()
-    bot.load_config('dlconfig.cfg')
-    bot.initBot()
-    bot.addHandlers()
-    bot.startBot()
+    bot = TgBot(config_file='dlconfig.cfg')
+    bot.start_bot()

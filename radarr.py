@@ -1,8 +1,24 @@
-#!/usr/bin/env python
-import requests, json, configparser, logging, sys
+import configparser
+import json
+import logging
+import requests
+import sys
 
 
-class radarrApi():
+def return_titles(raw_json):
+    """
+    this just populates the fields we want into a dict
+    """
+    titles = {}
+    for movie in raw_json:
+        for k, v in movie.items():
+            if k == "tmdbId":
+                title_key = movie["title"] + "(" + str(movie["year"]) + ")"
+                titles[title_key] = v
+    return titles
+
+
+class RadarrApi:
     """
     module to interact with a radarr
     instance. It has a few methods exposed
@@ -19,8 +35,12 @@ class radarrApi():
         self.config = configparser.ConfigParser()
         self.radarr_url = ""
         self.radarr_token = ""
+        self.root_folder_path = ""
+        self.used_fields_optional = []
         self.used_fields = ['tmdbId', 'title', 'titleSlug',
                             'images', 'year']
+        self.radarr_basic_user = False
+        self.radarr_basic_pass = False
 
     def load_config(self, configfile):
         """
@@ -35,62 +55,48 @@ class radarrApi():
             self.root_folder_path = self.config['radarr']['root_folder_path']
             self.used_fields_optional = [{'monitored': True},
                                          {'rootFolderPath': self.root_folder_path},
-                                         {'addOptions': {'searchForMovie':
-                                                             True}}]
+                                         {'addOptions': {'searchForMovie': True}}]
             try:
                 self.radarr_basic_user = self.config['common']['basic_user']
                 self.radarr_basic_pass = self.config['common']['basic_pass']
             except:
                 self.radarr_basic_user = False
                 self.radarr_basic_pass = False
-                self.log.warn("no basic user passed")
-        except:
+                self.log.warning("no basic user passed")
+        except KeyError:
             self.log.error("Error reading config file {}".format(configfile))
             sys.exit(1)
 
     def search_movie(self, search):
         """
         this will search for a show 
-        it replaces spaces wiht %20
+        it replaces spaces with %20
         in order to properly search
         it will return a dict from
         return_titles
         """
         search.replace(' ', '%20')
-        self.url = str(self.radarr_url + "/api/v3/movie/lookup?term=")
+        url = str(self.radarr_url + "/api/v3/movie/lookup?term=")
         self.log.info("Searching for: {}".format(search))
         try:
-            rvalu = self.return_titles(self.do_movie_search(self.url, search))
-            return rvalu
+            returned_value = return_titles(self.do_movie_search(url, search))
+            return returned_value
         except:
             self.log.error("failed on do_movie_search or return_titles for {}".format(search))
 
-    def return_titles(self, rawjson):
-        """
-        this just populates the fields we want into a dict
-        """
-        self.titles = {}
-        for movie in rawjson:
-            for k, v in movie.items():
-                if k == "tmdbId":
-                    tkey = movie["title"] + "(" + str(movie["year"]) + ")"
-                    self.titles[tkey] = v
-        return self.titles
-
-    def in_library(self, tmdbId):
+    def in_library(self, tmdb_id):
         """
         returns true if the tbdbId
         is found in the library
         """
-        self.url = str(self.radarr_url + "/api/v3/movie")
-        jdata = self.do_movie_search(self.url)
+        url = str(self.radarr_url + "/api/v3/movie")
+        jdata = self.do_movie_search(url)
         for show in jdata:
-            if show['tmdbId'] == int(tmdbId):
+            if show['tmdbId'] == int(tmdb_id):
                 return True
-                break
         return False
 
-    def do_movie_search(self, url, search_term=False):
+    def do_movie_search(self, url, search_term=None):
         """
         returns a json object of the results
         or returns false if nothing is found
@@ -101,17 +107,17 @@ class radarrApi():
         else:
             url += "?apikey=" + self.radarr_token
         if self.radarr_basic_user:
-            self.r = requests.get(url, auth=(self.radarr_basic_user, self.radarr_basic_pass))
+            request = requests.get(url, auth=(self.radarr_basic_user, self.radarr_basic_pass))
         else:
-            self.r = requests.get(url)
-        if self.r.status_code == 200:
-            return json.loads(self.r.text)
+            request = requests.get(url)
+        if request.status_code == 200:
+            return json.loads(request.text)
         else:
-            self.log.error("Status Code: {}".format(self.r.status_code))
-            self.log.error("Text returned: {}".format(self.r.text))
+            self.log.error("Status Code: {}".format(request.status_code))
+            self.log.error("Text returned: {}".format(request.text))
             return False
 
-    def add_movie(self, tmdbId):
+    def add_movie(self, tmdb_id):
         """
         this will create the post URL
         to download a movie it will
@@ -123,20 +129,22 @@ class radarrApi():
             self.gurl = str(self.radarr_url + "/api/v3/movie/lookup/tmdb" + "?tmdbId=")
         except:
             self.log.error("problem with {}".format(self.gurl))
-        self.log.info("Got request for tbdbId: {}".format(tmdbId))
-        raw_data = self.do_movie_search(self.gurl, str(tmdbId))
-        self.purl = str(self.radarr_url + "/api/v3/movie/" + "?apikey=" + self.radarr_token)
+        self.log.info("Got request for tbdbId: {}".format(tmdb_id))
+        raw_data = self.do_movie_search(self.gurl, str(tmdb_id))
+        post_url = str(self.radarr_url + "/api/v3/movie/" + "?apikey=" + self.radarr_token)
         try:
             jpdata = json.dumps(self.build_data(raw_data))
         except:
             self.log.error("Couldn't load {} as json object".format(jpdata))
+        headers = {'Content-type': 'application/json'}
         try:
-            headers = {'Content-type': 'application/json'}
-            self.pr = requests.post(self.purl, data=jpdata, headers=headers,
-                                    auth=(self.radarr_basic_user, self.radarr_basic_pass))
+            post_request = requests.post(
+                post_url, data=jpdata, headers=headers,
+                auth=(self.radarr_basic_user, self.radarr_basic_pass)
+            )
         except:
-            self.log.error("Got {} from api".format(self.pr.status_code))
-        if self.pr.status_code == 201:
+            self.log.error("Got {} from api".format(post_request.status_code))
+        if post_request.status_code == 201:
             return True
         else:
             return False
@@ -155,8 +163,3 @@ class radarrApi():
                 built_data[k] = v
         return built_data
 
-
-if __name__ == "__main__":
-    api = radarrApi()
-    api.load_config('dlconfig.cfg')
-    api.search_movie("Rick and")

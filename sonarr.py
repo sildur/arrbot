@@ -1,8 +1,11 @@
-#!/usr/bin/env python
-import requests, json, configparser, logging, sys
+import configparser
+import json
+import logging
+import requests
+import sys
 
 
-class sonarrApi():
+class SonarrApi:
     """
     module to interact with a sonarr 
     instance. It has a few methods exposed
@@ -33,11 +36,11 @@ class sonarrApi():
             self.sonarr_token = self.config['sonarr']['token']
             self.sonarr_root_folder_path = self.config['sonarr']['root_folder_path']
             self.used_fields_optional = [{'addOptions': {'ignoreEpisodesWithFiles':
-                                                             'true',
+                                                             True,
                                                          'ignoreEpisodesWithoutFiles':
-                                                             'false',
+                                                             False,
                                                          'searchForMissingEpisodes':
-                                                             'true'}},
+                                                             True}},
                                          {'rootFolderPath': self.sonarr_root_folder_path}]
             try:
                 self.sonarr_basic_user = self.config['common']['basic_user']
@@ -45,7 +48,7 @@ class sonarrApi():
             except:
                 self.sonarr_basic_user = False
                 self.sonarr_basic_pass = False
-                self.log.warn("no basic user passed")
+                self.log.warning("no basic user passed")
         except:
             self.log.error("Error reading config file {}".format(configfile))
             sys.exit(1)
@@ -53,7 +56,7 @@ class sonarrApi():
     def search_series(self, search):
         """
         this will search for a show 
-        it replaces spaces wiht %20
+        it replaces spaces with %20
         in order to properly search
         it will return a dict from
         return_titles
@@ -90,10 +93,9 @@ class sonarrApi():
         for show in jdata:
             if show['tvdbId'] == int(tvdbId):
                 return True
-                break
         return False
 
-    def do_tv_search(self, url, search_term=False):
+    def do_tv_search(self, url, search_term=None):
         """
         returns a json object of the results
         or returns false if nothing is found
@@ -129,7 +131,7 @@ class sonarrApi():
         try:
             self.jpdata = json.dumps(self.build_data(raw_data))
         except:
-            self.log.error("Couldn't load {} as json object".format(self.pdata))
+            self.log.error("Couldn't load {} as json object".format(self.jpdata))
         self.pr = requests.post(self.purl, data=self.jpdata, auth=(self.sonarr_basic_user, self.sonarr_basic_pass))
         if self.pr.status_code == 201:
             return True
@@ -151,7 +153,3 @@ class sonarrApi():
                 built_data[k] = v
         return built_data
 
-if __name__ == "__main__":
-    api = sonarrApi()
-    api.load_config('dlconfig.cfg')
-    api.search_series("Rick and")
