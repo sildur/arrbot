@@ -3,7 +3,6 @@
 ## Requirements
 * A telegram bot configured in a group chat
 * A Radarr or Sonarr server
-* A system user named `arrbot`
 
 
 ## Installation
@@ -26,9 +25,9 @@ Edit the configuration file:
 nano /opt/arrbot/arrbot.ini
 ```
 
-Ensure ownership of the binary directory.
+Set the correct ownership and permissions:
 ```shell
-sudo chown arrbot:nogroup -R /opt/arrbot
+sudo chown root:root -R /opt/arrbot
 ```    
 Configure systemd so arrbot starts at boot.
 ```shell
@@ -38,15 +37,14 @@ Description=Arrbot Daemon
 After=syslog.target network.target
 
 [Service]
+DynamicUser=yes
 WorkingDirectory=/opt/arrbot/
-User=arrbot
-Group=nogroup
 Type=simple
-
 ExecStart=/opt/arrbot/arrbot.py
 TimeoutStopSec=20
 KillMode=process
 Restart=on-failure
+
 [Install]
 WantedBy=multi-user.target
 EOF
