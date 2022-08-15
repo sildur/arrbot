@@ -3,45 +3,45 @@
 ## Requirements
 * A telegram bot configured in a group chat
 * A Radarr or Sonarr server
-* A system user named `tgrsbot`
+* A system user named `arrbot`
 
 
 ## Installation
 Download the code
 ```shell
-git clone https://github.com/sildur/TGRSBot.git tgrsbot
+git clone https://github.com/sildur/arrbot.git arrbot
 ```
 Move the files to `/opt/`
 ```shell
-mv tgrsbot /opt/
+mv arrbot /opt/
 ```
 
 Copy the configuration example:
 ```shell
-cp /opt/tgrsbot/arrbot.ini.example /opt/tgrsbot/arrbot.ini
+cp /opt/arrbot/arrbot.ini.example /opt/arrbot/arrbot.ini
 ```
 
-Populate `/opt/tgrsbot/arrbot.ini` with your settings
+Populate `/opt/arrbot/arrbot.ini` with your settings
 
 ```shell
 Ensure ownership of the binary directory.
 ```shell
-sudo chown tgrsbot:nogroup -R /opt/tgrsbot
+sudo chown arrbot:nogroup -R /opt/arrbot
 ```    
-Configure systemd so tgrsbot can autostart at boot.
+Configure systemd so arrbot can autostart at boot.
 ```shell
-cat << EOF | sudo tee /etc/systemd/system/tgrsbot.service > /dev/null
+cat << EOF | sudo tee /etc/systemd/system/arrbot.service > /dev/null
 [Unit]
-Description=TGRSBot Daemon
+Description=Arrbot Daemon
 After=syslog.target network.target
 
 [Service]
-WorkingDirectory=/opt/tgrsbot/
-User=tgrsbot
+WorkingDirectory=/opt/arrbot/
+User=arrbot
 Group=nogroup
 Type=simple
 
-ExecStart=/opt/tgrsbot/bot.py
+ExecStart=/opt/arrbot/arrbot.py
 TimeoutStopSec=20
 KillMode=process
 Restart=on-failure
@@ -52,9 +52,9 @@ EOF
 
 Enable the service.
 ```shell
-sudo systemctl enable tgrsbot.service
+sudo systemctl enable arrbot.service
 ```
 Start the service.
 ```shell
-sudo systemctl start tgrsbot.service
+sudo systemctl start arrbot.service
 ```
