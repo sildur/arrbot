@@ -1,5 +1,6 @@
 [common]
 bot_token = BOTTOKEN
+# Comma separated list of chat ids to send messages to
 allowed_chats = GROUP_ID_NUMBER
 
 [sonarr]
@@ -8,6 +9,8 @@ basic_password = BASIC_USER_PASS
 url = https://sonarr.example.com
 api_key = SONARR_API_TOKEN
 root_dir = /path/to/movies/
+# Comma separated list of tags to apply to added movies
+tags = movies
 
 [radarr]
 basic_username = BASIC_USER
@@ -15,3 +18,5 @@ basic_password = BASIC_USER_PASS
 url = https://radarr.example.com
 api_key = RADARR_API_TOKEN
 root_dir = /path/to/tv_shows/
+# Comma separated list of tags to apply to added series
+tags = tv_shows
