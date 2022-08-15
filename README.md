@@ -20,15 +20,17 @@ Copy the configuration example:
 ```shell
 cp /opt/arrbot/arrbot.ini.example /opt/arrbot/arrbot.ini
 ```
-
-Populate `/opt/arrbot/arrbot.ini` with your settings
-
+## Configuration
+Edit the configuration file:
 ```shell
+nano /opt/arrbot/arrbot.ini
+```
+
 Ensure ownership of the binary directory.
 ```shell
 sudo chown arrbot:nogroup -R /opt/arrbot
 ```    
-Configure systemd so arrbot can autostart at boot.
+Configure systemd so arrbot starts at boot.
 ```shell
 cat << EOF | sudo tee /etc/systemd/system/arrbot.service > /dev/null
 [Unit]

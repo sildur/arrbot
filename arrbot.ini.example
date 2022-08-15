@@ -1,22 +1,31 @@
 [common]
+# Telegram bot token
 bot_token = BOTTOKEN
 # Comma separated list of chat ids to send messages to
 allowed_chats = GROUP_ID_NUMBER
 
 [sonarr]
+# Sonarr auth basic username and password. Only required if sonarr has auth enabled.
 basic_username = BASIC_USER
 basic_password = BASIC_USER_PASS
+# Sonarr base url
 url = https://sonarr.example.com
+# Sonarr api key
 api_key = SONARR_API_TOKEN
+# Sonarr root dir
 root_dir = /path/to/movies/
 # Comma separated list of tags to apply to added movies
 tags = movies
 
 [radarr]
+# Radarr auth basic username and password. Only required if sonarr has auth enabled.
 basic_username = BASIC_USER
 basic_password = BASIC_USER_PASS
+# Radarr base url
 url = https://radarr.example.com
+# Radarr api key
 api_key = RADARR_API_TOKEN
+# Radarr root dir
 root_dir = /path/to/tv_shows/
 # Comma separated list of tags to apply to added series
 tags = tv_shows
