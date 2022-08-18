@@ -131,6 +131,7 @@ class ArrBot:
             return
 
         results = connector["action_search"](terms)
+        results = results[:15]
         if len(results) == 0:
             update.message.reply_text("No results found")
             self.log.info(f"no results found for {terms}")
@@ -141,7 +142,7 @@ class ArrBot:
             if entry_id is None:
                 continue
             button = InlineKeyboardButton(
-                result["title"],
+                f"{result['title']} ({result['year']})",
                 callback_data=json.dumps(
                     {"item_id": entry_id, "connector_name": connector_name}
                 ),
