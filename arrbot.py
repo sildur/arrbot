@@ -80,8 +80,12 @@ class ArrBot:
 
     def download_item(self, item_id, connector_name, context, query):
         connector = self.connectors[connector_name]
+        create_params = {
+            "root_dir": connector["root_dir"], "quality_profile_id": 1
+        }
+        create_params.update(connector["create_params"])
         item_data = connector["action_create"](
-            item_id, root_dir=connector["root_dir"], quality_profile_id=1
+            item_id, **create_params
         )
         if connector["tags"]:
             available_tags = connector["api_class"].get_tag()
@@ -191,6 +195,7 @@ class ArrBot:
             action_create = api_class.add_movie
             action_update = api_class.upd_movie
             action_search = api_class.lookup_movie
+            create_params = {"search_for_movie": True}
         elif section_name == "sonarr":
             command = "tv"
             id_field = "tvdbId"
@@ -198,6 +203,7 @@ class ArrBot:
             action_create = api_class.add_series
             action_update = api_class.upd_series
             action_search = api_class.lookup_series
+            create_params = {"search_for_missing_episodes": True}
         else:
             self.log.error(f"unknown section {section_name}")
             sys.exit(1)
@@ -212,6 +218,7 @@ class ArrBot:
             "action_search": action_search,
             "command": command,
             "id_field": id_field,
+            "create_params": create_params,
         }
 
 
