@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import configparser
 import json
 import logging
@@ -128,7 +129,10 @@ class ArrBot:
     ):
         connector = self.connectors[connector_name]
         arguments = context.args
-        terms = " ".join(arguments)
+        if arguments is not None:
+            terms = " ".join(arguments)
+        else:
+            terms = ""
         if str(update.message.chat_id) not in self.allowed_chats:
             update.message.reply_text("You are not allowed to use this bot")
             self.log.info(f"{update.message.chat_id} not in allowed_chats")
